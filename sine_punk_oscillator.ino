@@ -1,23 +1,31 @@
 /*
+
   S     N      I     D
   SINE PUNK OSCILLATOR
   v 0.1
 
-  sine wave phase multiplier oscillator thing
-  for use with ATtiny 85 running at 8 MHz
+  sine wave phase multiplying oscillator thing
+  -- for use with ATtiny 85 running @ 8 MHz --
 
-  thank you to technoblogy for the online waveform generation info, miniMO for the sinewave stuff,
-  and bastl instruments for the Kastle synth which was used as a starting point of sorts for this project
+  thank you to the following sources from which much of this code is derived: 
+  - technoblogy for the waveform generation info
+  - miniMO for the sinewave stuff
+  - bastl instruments for the kastle synth
+  
 */
 
 unsigned int acc1, acc2, freq1, freq2, d, e;
 
 // miniMO sine wavetable
 const char PROGMEM sinetable[128] = {
-  0, 0, 0, 0, 1, 1, 1, 2, 2, 3, 4, 5, 5, 6, 7, 9, 10, 11, 12, 14, 15, 17, 18, 20, 21, 23, 25, 27, 29, 31, 33, 35, 37, 40, 42, 44, 47, 49, 52,
-  54, 57, 59, 62, 65, 67, 70, 73, 76, 79, 82, 85, 88, 90, 93, 97, 100, 103, 106, 109, 112, 115, 118, 121, 124, 128, 131, 134, 137, 140, 143, 146,
-  149, 152, 155, 158, 162, 165, 167, 170, 173, 176, 179, 182, 185, 188, 190, 193, 196, 198, 201, 203, 206, 208, 211, 213, 215, 218, 220, 222, 224,
-  226, 228, 230, 232, 234, 235, 237, 238, 240, 241, 243, 244, 245, 246, 248, 249, 250, 250, 251, 252, 253, 253, 254, 254, 254, 255, 255, 255,
+  0,   0,   0,   0,   1,   1,   1,   2,   2,   3,   4,   5,   5,   6,   7,   9,
+  10,  11,  12,  14,  15,  17,  18,  20,  21,  23,  25,  27,  29,  31,  33,  35,
+  37,  40,  42,  44,  47,  49,  52,  54,  57,  59,  62,  65,  67,  70,  73,  76,
+  79,  82,  85,  88,  90,  93,  97,  100, 103, 106, 109, 112, 115, 118, 121, 124,
+  128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 162, 165, 167, 170, 173,
+  176, 179, 182, 185, 188, 190, 193, 196, 198, 201, 203, 206, 208, 211, 213, 215,
+  218, 220, 222, 224, 226, 228, 230, 232, 234, 235, 237, 238, 240, 241, 243, 244,
+  245, 246, 248, 249, 250, 250, 251, 252, 253, 253, 254, 254, 254, 255, 255, 255,
 };
 
 unsigned char wavetable[256];
@@ -63,8 +71,8 @@ void sineWave() {
 
 void loop() {
   if (analogRead(0) > 800) {           // check switch
-    freq1 = analogRead(3) * 8;         // set wave frequency
-    freq2 = analogRead(2) * 4;         // set sine frequency
+    freq1 = analogRead(3) * 8;         // wave mult osc frequency
+    freq2 = analogRead(2) * 4;         // sine wave osc frequency
   }
   else {
 
@@ -72,7 +80,7 @@ void loop() {
     freq2 = analogRead(2) / 5 + freq1 / 2;
   }
 
-  e = analogRead(1) / 2 - 256;         // set comparator
+  e = analogRead(1) / 2 - 256;         // comparator
   if (e > 20) {
     d = e - 20;
   }
@@ -85,11 +93,15 @@ void loop() {
 }
 
 ISR(TIMER1_COMPA_vect) {
+  // sine wave osc
   acc2 += freq2;
+  
+  // wave mult osc
+  // weird stuff when accumulator is less than comparartor
   if ((acc1 >> 8) < d) {
     acc1 += (freq1 * d);
   }
-
+  // sine wave when accumulator is greater than comparartor
   else {
     acc1 += freq1;
   }
